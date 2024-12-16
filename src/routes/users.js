@@ -16,7 +16,7 @@ router.post('/signup', async (req, res) => {
   
     // Validate request body
     const { error } = validate(req.body);
-    console.log('2.error ==', error);
+    
    
     if (error) return res.status(STATUS_CODE_BAD_REQUEST).send(error.details[ZERO].message);
    
@@ -47,6 +47,7 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log('1.login ==', req.body);
 
         // Validate user credentials...
         const user = await User.findOne({ email });
@@ -62,7 +63,12 @@ router.post('/login', async (req, res) => {
             { expiresIn: '1h' } // Optional: Add expiration
         );
 
-        res.header('x-auth-token', token).send(token);
+        res.header('x-auth-token', token).send({
+            token: token,
+            email: user.email,
+            name: user.name,
+        });
+
     } catch (err) {
         console.error('Error during login:', err.message);
         res.status(500).send('Server error');

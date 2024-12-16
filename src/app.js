@@ -42,7 +42,7 @@ app.use('/api/register', users);
 app.use('/api/signin', users);
 
 app.use('/api/auth', auth);
-app.use('/api/transactions', transactions);
+app.use('/api/user', transactions);
 
 app.get('/', (req,res) => {
     console.log('Backend to front')
