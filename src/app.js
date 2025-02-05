@@ -38,9 +38,7 @@ app.use(
   
 
 // Routes
-app.use('/api/register', users);
-app.use('/api/signin', users);
-
+app.use('/api/users', users);
 app.use('/api/auth', auth);
 app.use('/api/user', transactions);
 

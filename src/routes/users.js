@@ -1,42 +1,42 @@
-const { STATUS_CODE_BAD_REQUEST,
-    STATUS_CODE_INTERNAL_SERVER_ERROR,
-    ZERO
- } = require('../constants');
+const { STATUS_CODE_BAD_REQUEST, STATUS_CODE_INTERNAL_SERVER_ERROR, ZERO } = require('../constants');
 const _ = require('lodash');
 const express = require('express');
-const {User, validate} = require('../models/user');
-const router = express.Router();
+const { User, validate } = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const router = express.Router();
 
-
-
-router.post('/signup', async (req, res) => {
-    console.log('1.register ==', req.body);
+// User registration
+router.post('/register', async (req, res) => {
+  
   
     // Validate request body
     const { error } = validate(req.body);
     
-   
+  
     if (error) return res.status(STATUS_CODE_BAD_REQUEST).send(error.details[ZERO].message);
    
     // Check for duplicate email
     let user = await User.findOne({ email: req.body.email });
     if (user) return res.status(STATUS_CODE_BAD_REQUEST).send('User already registered.');
 
-  
-
+    // Check if passwords match
+    if (req.body.password !== req.body.confirmPassword) {
+        return res.status(STATUS_CODE_BAD_REQUEST).send('Passwords do not match.');
+    }
+    
     // Save the user to the database
     user = new User(_.pick(req.body, ['name', 'email', 'password']));
 
     try {
-          // Generate salt and hash password
-        const salt      = await bcrypt.genSalt(10);
-        user.password   = await bcrypt.hash(user.password, salt);
+        // Generate salt and hash password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
 
         await user.save();
         console.log('3.user ==', user);
 
+        // Generate auth token
         const token = user.generateAuthToken();
         res.header('x-auth-token', token).send(_.pick(user, ['_id', 'name', 'email']));
     } catch (err) {
@@ -44,13 +44,16 @@ router.post('/signup', async (req, res) => {
         res.status(STATUS_CODE_INTERNAL_SERVER_ERROR).send('Server error');
     }
 });
-router.post('/login', async (req, res) => {
+
+// User signin
+router.post('/signin', async (req, res) => {
     try {
         const { email, password } = req.body;
         console.log('1.login ==', req.body);
 
         // Validate user credentials...
         const user = await User.findOne({ email });
+       
         if (!user) return res.status(400).send('Invalid email or password.');
 
         const validPassword = await bcrypt.compare(password, user.password);
@@ -59,9 +62,10 @@ router.post('/login', async (req, res) => {
         // Generate JWT
         const token = jwt.sign(
             { _id: user._id, email: user.email, name: user.name },
-            process.env.JWT_PRIVATE_KEY, // Use your secret key from the config
-            { expiresIn: '1h' } // Optional: Add expiration
-        );
+            process.env.JWT_PRIVATE_KEY, 
+            { expiresIn: '1h' } 
+        );        
+        
 
         res.header('x-auth-token', token).send({
             token: token,
