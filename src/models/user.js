@@ -15,60 +15,6 @@ const passwordComplexity = require('joi-password-complexity');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 
-// const userSchema =  new mongoose.Schema({
-//     name: {
-//         type: String,
-//         required: true,
-//         minlength: MIN_LENGTH_FIVE,
-//         maxlength: MAX_LENGTH_FIFTY
-//     },
-//     email: {
-//         type: String,
-//         required: true,
-//         minlength: MIN_LENGTH_FIVE,
-//         maxlength: MAX_LENGTH_TWO_FIFTY_FIVE,
-//         unique: true // Fixed typo: "unqiue" → "unique"
-//     },
-//     password: {
-//         type: String,
-//         required: true,
-//         minlength: MIN_LENGTH_FIVE,
-//         maxlength: MAX_LENGTH_ONE_THOUSAND_TWENTY_FOUR
-//     }
-   
-// })
-
-// userSchema.methods.generateAuthToken = function() {
-//     const token = jwt.sign({ _id: this._id }, process.env.JWT_PRIVATE_KEY);
-//     return token;
-// }
-
-// const User = mongoose.model('User',userSchema);
-
-
-// function validateUser(user) {
-//     const schema = Joi.object({
-//         name: Joi.string().min(MIN_LENGTH_FIVE).max(MAX_LENGTH_FIFTY).required(),
-//         email: Joi.string().min(MIN_LENGTH_FIVE).max(MAX_LENGTH_TWO_FIFTY_FIVE).required().email(),
-//         password: passwordComplexity({
-//             min: MIN_LENGTH_EIGHT,        // Minimum length
-//             max: MAX_LENGTH_TWENTY,       // Maximum length
-//             lowerCase: MIN_LENGTH_ONE,  // At least one lowercase letter
-//             upperCase: MIN_LENGTH_ONE,  // At least one uppercase letter
-//             numeric: MIN_LENGTH_ONE,    // At least one number
-//             symbol: MIN_LENGTH_ONE,     // At least one special character
-//             requirementCount: MIN_LENGTH_FOUR // Number of requirements (at least 4 criteria should be met)
-//         }).required(),
-//         confirmPassword: Joi.string().valid(Joi.ref('password')).required()
-//             .messages({ 'any.only': 'Confirm password does not match password' })
-
-//     });
-
-//     return schema.validate(user); 
-// }
-
-// exports.User = User;
-// exports.validate = validateUser;
 
 const transactionSchema = new mongoose.Schema({
     category: {
@@ -83,7 +29,14 @@ const transactionSchema = new mongoose.Schema({
   
   const userTransactionSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    transactions: [transactionSchema],
+    transactions: [
+      {
+        category: { type: String, required: true, enum: ["food", "transportation", "entertainment", "housing", "shopping"] },
+        amount: { type: Number, required: true },
+        description: { type: String, trim: true },
+        date: { type: Date, default: Date.now },
+      },
+    ],
     totalBudget: { type: Number, default: 0 },
     totalAmountSpent: { type: Number, default: 0 },
     remainingBudget: {
@@ -93,6 +46,8 @@ const transactionSchema = new mongoose.Schema({
       },
     },
   });
+  
+
   
   
   const userSchema = new mongoose.Schema({
