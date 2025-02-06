@@ -33,13 +33,10 @@ app.use(
     })
 );
 
-
-
-  
-
+ 
 // Routes
 app.use('/api/users', users);
-app.use('/api/auth', auth);
+app.use('/api/auth', auth); 
 app.use('/api/user', transactions);
 
 app.get('/', (req,res) => {
