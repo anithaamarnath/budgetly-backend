@@ -5,21 +5,30 @@ const router = express.Router();
 
 
 // ✅ Get User Transactions & Budget by User ID
-router.get("/user/:userId", async (req, res) => {
-  try {
-    console.log("Fetching transactions for user:", req.params.userId);
-    
-    const user = await UserTransaction.findOne({ user: req.params.userId }).populate('user');
+router.get("/:email", async (req, res) => {
+  
+  try { 
+    // First, find the user by email from the User model
+    const user = await User.findOne({ email: req.params.email });
 
+   
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Then, use the user's ObjectId to find transactions in UserTransaction
+    const userTransaction = await UserTransaction.findOne({ user: user._id }).populate('user');
+    
+    if (!userTransaction) {
+      return res.status(404).json({ message: "User transactions not found" });
+    }
+   
+
     res.json({
-      totalBudget: user.totalBudget,
-      totalAmountSpent: user.totalAmountSpent,
-      remainingBudget: user.remainingBudget,
-      transactions: user.transactions,
+      totalBudget: userTransaction.totalBudget,
+      totalAmountSpent: userTransaction.totalAmountSpent,
+      remainingBudget: userTransaction.remainingBudget,
+      transactions: userTransaction.transactions,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -27,10 +36,9 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 
-
 router.post("/add-transaction/:email", async (req, res) => {
   try {
-    console.log("Adding transaction for user:", req.params.email);
+
 
     const { category, amount, description, date } = req.body;
 
@@ -90,7 +98,7 @@ router.post("/add-transaction/:email", async (req, res) => {
 // ✅ Update the User's Budget (PUT)
 router.put("/:userId", async (req, res) => {
   try {
-    console.log("Updating budget for:", req.params.userId);
+   
     
     const { totalBudget } = req.body;
 
@@ -114,6 +122,53 @@ router.put("/:userId", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+router.put("/update-budget/:email", async (req, res) => {
+  try {
+    const { email } = req.params; // Get the email from the route params
+    const { totalBudget } = req.body; // Get the totalBudget from the request body
+ 
+
+    // Validate totalBudget
+    if (totalBudget < 0) {
+      return res.status(400).json({ message: "Total budget must be a positive number" });
+    }
+
+    // Find the user transaction by email
+   // First, find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Now, use the user's ID to find the corresponding user transaction
+    const userTransaction = await UserTransaction.findOne({ user: user._id });
+
+    if (!userTransaction) {
+      return res.status(404).json({ message: "User transaction data not found" });
+    } 
+    // Update the user's total budget and remaining budget
+    userTransaction.totalBudget = totalBudget;
+    userTransaction.remainingBudget = totalBudget - userTransaction.totalAmountSpent;
+
+    // Save the updated transaction
+    await userTransaction.save();
+
+   
+
+    // Respond with the updated user transaction
+    res.json({
+      totalBudget: userTransaction.totalBudget,
+      remainingBudget: userTransaction.remainingBudget,
+    });
+
+  } catch (error) {
+    console.error("Error updating budget:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 // ✅ Delete a Transaction (DELETE)
 router.delete("/delete-transaction/:userId/:transactionId", async (req, res) => {
