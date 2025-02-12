@@ -1,11 +1,11 @@
 const express = require('express');
-const { Transaction, transactionValidate } = require('../models/transaction');
-const authMiddleware = require('../middleware/authMidleware');
+const { UserTransaction, validateUserTransaction } = require('../models/user');
+const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/addNew', authMiddleware, async (req, res) => {
-  // Validate the transaction data
-  const { error } = transactionValidate(req.body);
+ 
+  const { error } = validateUserTransaction(req.body);
   if (error) {
     return res.status(400).json({ message: error.details[0].message });
   }
@@ -13,18 +13,18 @@ router.post('/addNew', authMiddleware, async (req, res) => {
   const { category, amount, description, date } = req.body;
 
   try {
-    // Ensure user email is available
+  
     if (!req.user?.email) {
       return res.status(401).json({ message: 'Unauthorized: Email not found in request' });
     }
 
-    // Create and save the transaction
-    const newTransaction = new Transaction({
+  
+    const newTransaction = new UserTransaction({
       category,
       amount,
       description,
       date,
-      userEmail: req.user.email, // Email from logged-in user
+      userEmail: req.user.email, 
     });
 
     await newTransaction.save();
