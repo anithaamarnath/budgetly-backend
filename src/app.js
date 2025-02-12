@@ -7,13 +7,16 @@ const auth = require('./routes/auth');
 const transactions = require('./routes/transactions');
 require('dotenv').config();
 
+
+
 const app = express();
-
-
-app.use(cors());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true
+}));
 
 app.use(express.json());
-
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
