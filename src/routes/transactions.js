@@ -1,14 +1,15 @@
 const express = require("express");
 const { User,validateUser, UserTransaction, validateUserTransaction } = require("../models/user");  
 const authMiddleware = require("../middleware/authMiddleware");
+const { ObjectId } = require("mongodb");
 const router = express.Router();
 
 
-// ✅ Get User Transactions & Budget by User ID
+
 router.get("/:email", async (req, res) => {
   
   try { 
-    // First, find the user by email from the User model
+   
     const user = await User.findOne({ email: req.params.email });
 
    
@@ -16,7 +17,7 @@ router.get("/:email", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Then, use the user's ObjectId to find transactions in UserTransaction
+  
     const userTransaction = await UserTransaction.findOne({ user: user._id }).populate('user');
     
     if (!userTransaction) {
@@ -38,35 +39,29 @@ router.get("/:email", async (req, res) => {
 
 router.post("/add-transaction/:email", async (req, res) => {
   try {
-
-
     const { category, amount, description, date } = req.body;
 
     if (!category || !amount) {
       return res.status(400).json({ message: "Category and Amount are required" });
     }
 
-    // Find the user by email
     const user = await User.findOne({ email: req.params.email });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Find the user's transactions or create a new one
     let userTransaction = await UserTransaction.findOne({ user: user._id });
 
     if (!userTransaction) {
-      console.log("No UserTransaction record found. Creating a new one...");
       userTransaction = new UserTransaction({
         user: user._id,
         transactions: [],
-        totalBudget: 0, // Set default budget if needed
+        totalBudget: 0, 
         totalAmountSpent: 0,
       });
     }
 
-    // Create a new transaction
     const newTransaction = {
       category,
       amount,
@@ -74,7 +69,6 @@ router.post("/add-transaction/:email", async (req, res) => {
       date: date ? new Date(date) : new Date(),
     };
 
-    // Update user transactions
     userTransaction.transactions.push(newTransaction);
     userTransaction.totalAmountSpent += amount;
     userTransaction.remainingBudget = userTransaction.totalBudget - userTransaction.totalAmountSpent;
@@ -94,69 +88,83 @@ router.post("/add-transaction/:email", async (req, res) => {
 });
 
 
-
-// ✅ Update the User's Budget (PUT)
-router.put("/:userId", async (req, res) => {
+router.put("/edit-transaction/:transactionId", async (req, res) => {
   try {
-   
-    
-    const { totalBudget } = req.body;
+    const { transactionId } = req.params;
+    const updatedData = req.body;
 
-    if (!totalBudget || totalBudget < 0) {
-      return res.status(400).json({ message: "Total budget must be a positive number" });
+  
+    if (!updatedData.category || !updatedData.amount) {
+      return res.status(400).json({ message: "Category and amount are required" });
     }
 
-    const user = await UserTransaction.findOne({ user: req.params.userId });
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const userTransaction = await UserTransaction.findOne({ "transactions._id": new ObjectId(transactionId) });
+
+    if (!userTransaction) {
+      return res.status(404).json({ message: "Transaction not found" });
     }
 
-    user.totalBudget = totalBudget;
-    user.remainingBudget = totalBudget - user.totalAmountSpent;
+    const transaction = userTransaction.transactions.find((t) => t._id.toString() === transactionId);
 
-    await user.save();
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found in user's data" });
+    }
 
-    res.json({ totalBudget, remainingBudget: user.remainingBudget });
+    const amountDifference = updatedData.amount - transaction.amount;
+
+    transaction.category = updatedData.category;
+    transaction.amount = updatedData.amount;
+    if (updatedData.description) {
+      transaction.description = updatedData.description;
+    }
+
+
+    userTransaction.totalAmountSpent += amountDifference;
+    userTransaction.remainingBudget = userTransaction.totalBudget - userTransaction.totalAmountSpent;
+
+    await userTransaction.save();
+
+    res.json({
+      totalBudget: userTransaction.totalBudget,
+      totalAmountSpent: userTransaction.totalAmountSpent,
+      remainingBudget: userTransaction.remainingBudget,
+      transactions: userTransaction.transactions,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error editing transaction:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
+
 router.put("/update-budget/:email", async (req, res) => {
   try {
-    const { email } = req.params; // Get the email from the route params
-    const { totalBudget } = req.body; // Get the totalBudget from the request body
+    const { email } = req.params; 
+    const { totalBudget } = req.body; 
  
-
-    // Validate totalBudget
     if (totalBudget < 0) {
       return res.status(400).json({ message: "Total budget must be a positive number" });
     }
 
-    // Find the user transaction by email
-   // First, find the user by email
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Now, use the user's ID to find the corresponding user transaction
+
     const userTransaction = await UserTransaction.findOne({ user: user._id });
 
     if (!userTransaction) {
       return res.status(404).json({ message: "User transaction data not found" });
     } 
-    // Update the user's total budget and remaining budget
     userTransaction.totalBudget = totalBudget;
     userTransaction.remainingBudget = totalBudget - userTransaction.totalAmountSpent;
 
-    // Save the updated transaction
     await userTransaction.save();
 
-   
-
-    // Respond with the updated user transaction
+  
     res.json({
       totalBudget: userTransaction.totalBudget,
       remainingBudget: userTransaction.remainingBudget,
@@ -170,42 +178,45 @@ router.put("/update-budget/:email", async (req, res) => {
 
 
 
-// ✅ Delete a Transaction (DELETE)
-router.delete("/delete-transaction/:userId/:transactionId", async (req, res) => {
+
+router.delete("/delete-transaction/:transactionId", async (req, res) => {
   try {
-    console.log("Deleting transaction:", req.params.transactionId, "for user:", req.params.userId);
-    
-    const user = await UserTransaction.findOne({ user: req.params.userId });
+    const { transactionId } = req.params;
+   
+
+    const user = await UserTransaction.findOne({ "transactions._id": new ObjectId(transactionId) });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const transactionIndex = user.transactions.findIndex(
-      (t) => t._id.toString() === req.params.transactionId
-    );
-
-    if (transactionIndex === -1) {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    // Get amount before deleting
-    const amountToDelete = user.transactions[transactionIndex].amount;
 
-    // Remove transaction
-    user.transactions.splice(transactionIndex, 1);
-    user.totalAmountSpent -= amountToDelete;
-    user.remainingBudget = user.totalBudget - user.totalAmountSpent;
+    const transaction = user.transactions.find((t) => t._id.toString() === transactionId);
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found in user's data" });
+    }
 
-    await user.save();
+    const amountToDelete = transaction.amount;
+
+  
+    const updatedUser = await UserTransaction.findOneAndUpdate(
+      { "transactions._id": new ObjectId(transactionId) },
+      {
+        $pull: { transactions: { _id: new ObjectId(transactionId) } },
+        $inc: { totalAmountSpent: -amountToDelete, remainingBudget: amountToDelete },
+      },
+      { new: true }
+    );
 
     res.json({
       message: "Transaction deleted successfully",
-      totalAmountSpent: user.totalAmountSpent,
-      remainingBudget: user.remainingBudget,
+      totalAmountSpent: updatedUser.totalAmountSpent,
+      remainingBudget: updatedUser.remainingBudget,
+      transactions: updatedUser.transactions,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error deleting transaction:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
