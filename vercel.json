@@ -1,22 +1,15 @@
 {
-    "headers": [
+  "version": 2,
+  "builds": [
       {
-        "source": "/api/(.*)",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "https://budgetly-frontend-git-main-anithaamarnaths-projects.vercel.app"
-          },
-          {
-            "key": "Access-Control-Allow-Methods",
-            "value": "GET, POST, PUT, DELETE, OPTIONS"
-          },
-          {
-            "key": "Access-Control-Allow-Headers",
-            "value": "Content-Type, Authorization"
-          }
-        ]
+          "src": "app.js",
+          "use": "@vercel/node"
       }
-    ]
-  }
-  
+  ],
+  "routes": [
+      {
+          "src": "/(.*)",
+          "dest": "app.js"
+      }
+  ]
+}
