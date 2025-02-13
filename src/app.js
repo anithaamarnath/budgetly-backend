@@ -10,11 +10,16 @@ require('dotenv').config();
 
 
 const app = express();
-// Allow requests from your frontend domain
-const allowedOrigins = ['https://budgetly-frontend.vercel.app'];
 
+
+
+// Allow requests from your frontend domain
+const allowedOrigins = ['https://budgetly-frontend.vercel.app', 'http://localhost:3000'];  // Include localhost for local development
+
+// CORS setup
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
+    console.log('Origin:', origin);  // Log the origin for debugging
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true); // Allow the request
     } else {
@@ -24,6 +29,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Handling preflight (OPTIONS) requests
+app.options('*', cors());  // This will handle all preflight requests
+
 app.use(express.json());
 
 const isDevelopment = process.env.NODE_ENV === 'development';
