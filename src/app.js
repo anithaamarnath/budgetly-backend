@@ -50,7 +50,7 @@ app.use('/api/users', users);
 app.use('/api/auth', auth); 
 app.use('/api/user', transactions);
 
-app.get('/', (req,res) => {
+app.get('/test', (req,res) => {
     res.json({message: 'Hello from the backend!'});
 })
 
