@@ -10,12 +10,20 @@ require('dotenv').config();
 
 
 const app = express();
-app.use(cors({
-    origin: 'https://budgetly-frontend.vercel.app', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-    allowedHeaders: ['Content-Type', 'Authorization'], 
-  }));
+// Allow requests from your frontend domain
+const allowedOrigins = ['https://budgetly-frontend.vercel.app'];
 
+app.use(cors({
+  origin: function(origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error('Not allowed by CORS')); // Reject the request
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 const isDevelopment = process.env.NODE_ENV === 'development';
