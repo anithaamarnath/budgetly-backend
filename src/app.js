@@ -14,7 +14,7 @@ const app = express();
 
 
 const corsOptions = {
-  origin: "https://budgetly-frontend.vercel.app", // Allow only your frontend
+  origin: "*", // Allow only your frontend
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true, // Allow cookies & authentication headers
