@@ -12,12 +12,14 @@ require('dotenv').config();
 const app = express();
 
 
+// Enable CORS for your frontend domain
 app.use(cors({
-  origin: 'https://budgetly-frontend.vercel.app', // Allow only your frontend domain
+  origin: 'https://budgetly-frontend.vercel.app',  // Allow only your frontend
   methods: 'GET,POST,PUT,DELETE,OPTIONS',
   allowedHeaders: 'Content-Type,Authorization'
 }));
 
+// Enable CORS for preflight requests
 app.options('*', cors());
 
 app.use(express.json());
