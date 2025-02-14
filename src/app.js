@@ -13,7 +13,7 @@ const app = express();
 
 
 app.use(cors({
-  origin: ['https://budgetly-frontend.vercel.app', 'https://budgetly-frontend-2emqo1kem-anithaamarnaths-projects.vercel.app'], // Allow both frontend URLs
+  origin: ['https://budgetly-backend.vercel.app'], // Allow both frontend URLs
   methods: 'GET, POST, PUT, DELETE, OPTIONS',
   allowedHeaders: 'Content-Type, Authorization'
 }));
