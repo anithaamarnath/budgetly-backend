@@ -12,14 +12,15 @@ require('dotenv').config();
 const app = express();
 
 
-app.use(cors({
-  origin: ['https://budgetly-frontend.vercel.app'], // Allow both frontend URLs
-  methods: 'GET, POST, PUT, DELETE, OPTIONS',
-  allowedHeaders: 'Content-Type, Authorization'
-}));
 
-// Handle preflight requests for all routes
-app.options('*', cors());
+app.use(
+  cors({
+    origin: "https://budgetly-frontend.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true,
+  })
+)
 
 
 app.use(express.json());
