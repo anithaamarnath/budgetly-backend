@@ -1,15 +1,21 @@
 {
-  "version": 2,
-  "builds": [
+    "version": 2,
+    "builds": [
       {
-          "src": "app.js",
-          "use": "@vercel/node"
+        "src": "app.js",
+        "use": "@vercel/node"
       }
-  ],
-  "routes": [
+    ],
+    "routes": [
       {
-          "src": "/(.*)",
-          "dest": "app.js"
+        "src": "/api/(.*)",
+        "headers": {
+          "Access-Control-Allow-Origin": "https://budgetly-frontend.vercel.app",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, DELETE",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        },
+        "dest": "app.js"
       }
-  ]
-}
+    ]
+  }
+  
