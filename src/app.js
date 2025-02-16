@@ -12,17 +12,7 @@ require('dotenv').config();
 const app = express();
 
 
-
-const corsOptions = {
-  origin: "*", // Allow only your frontend
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // Allow cookies & authentication headers
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Handle preflight requests
-
+app.use(cors());
 
 app.use(express.json());
 
