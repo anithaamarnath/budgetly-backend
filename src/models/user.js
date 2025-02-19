@@ -1,8 +1,19 @@
-const {ZERO,EXPIRES_IN_ONE_HOUR,MIN_LENGTH_FIVE,MAX_LENGTH_FIFTY, MIN_LENGTH_EIGHT, MAX_LENGTH_TWENTY,MAX_LENGTH_TWO_FIFTY_FIVE, MAX_LENGTH_ONE_THOUSAND_TWENTY_FOUR} = require('../constants');
 const mongoose = require("mongoose");
 const Joi = require("joi");
 const passwordComplexity = require("joi-password-complexity");
 const jwt = require("jsonwebtoken");
+const {
+  ZERO,
+  EXPIRES_IN_ONE_HOUR,
+  MIN_LENGTH_FIVE,
+  MAX_LENGTH_FIFTY,
+  MIN_LENGTH_ONE, 
+  MIN_LENGTH_FOUR,  
+  MIN_LENGTH_EIGHT, 
+  MAX_LENGTH_TWENTY,
+  MAX_LENGTH_TWO_FIFTY_FIVE, 
+  MAX_LENGTH_ONE_THOUSAND_TWENTY_FOUR
+} = require('../constants');
 
 
 const transactionSchema = new mongoose.Schema({

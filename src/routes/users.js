@@ -1,10 +1,15 @@
-const { STATUS_CODE_BAD_REQUEST, STATUS_CODE_INTERNAL_SERVER_ERROR, ZERO,EXPIRES_IN_ONE_HOUR } = require('../constants');
 const _ = require('lodash');
 const express = require('express');
 const { User, validateUser } = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
+const { 
+    ZERO,
+    STATUS_CODE_BAD_REQUEST, 
+    STATUS_CODE_INTERNAL_SERVER_ERROR, 
+    EXPIRES_IN_ONE_HOUR 
+} = require('../constants');
 
 
 router.post('/register', async (req, res) => {
@@ -25,7 +30,7 @@ router.post('/register', async (req, res) => {
 
     try {
   
-        const salt = await bcrypt.genSalt(process.env.SALT);
+        const salt = await bcrypt.genSalt(Number(process.env.SALT));
 
         user.password = await bcrypt.hash(user.password, salt);
     

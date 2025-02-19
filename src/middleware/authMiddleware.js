@@ -1,6 +1,9 @@
-const { STATUS_CODE_UNAUTHORIZED, STATUS_CODE_BAD_REQUEST } = require('../constants');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { 
+  STATUS_CODE_UNAUTHORIZED, 
+  STATUS_CODE_BAD_REQUEST 
+} = require('../constants');
 
 module.exports = function (req, res, next) {
   const token = req.header('x-auth-token');

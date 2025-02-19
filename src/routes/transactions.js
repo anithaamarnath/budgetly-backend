@@ -1,29 +1,39 @@
-const { STATUS_CODE_BAD_REQUEST, STATUS_CODE_CREATED, STATUS_CODE_INTERNAL_SERVER_ERROR, STATUS_CODE_NOT_FOUND, ZERO } = require("../constants");
 const express = require("express");
 const { User, UserTransaction } = require("../models/user");  
 const { ObjectId } = require("mongodb");
 const router = express.Router();
+const { 
+  STATUS_CODE_BAD_REQUEST,
+  STATUS_CODE_CREATED, 
+  STATUS_CODE_INTERNAL_SERVER_ERROR, 
+  STATUS_CODE_NOT_FOUND, 
+  ZERO 
+} = require("../constants");
 
 
 
 router.get("/:email", async (req, res) => {
-  
   try { 
-   
-    const user = await User.findOne({ email: req.params.email });
+    const user = await User.findOne({ email: req.params.email.toLowerCase() });
 
-   
     if (!user) {
+      console.error("User not found in DB");
       return res.status(STATUS_CODE_NOT_FOUND).json({ message: "User not found" });
     }
 
-  
     const userTransaction = await UserTransaction.findOne({ user: user._id }).populate('user');
-    
-    if (!userTransaction) {
-      return res.status(STATUS_CODE_NOT_FOUND).json({ message: "User transactions not found" });
-    }
+
    
+    if (!userTransaction) {
+      console.warn("No transactions found for user. Returning default values.");
+      return res.json({
+        totalBudget: ZERO,
+        totalAmountSpent: ZERO,
+        remainingBudget: ZERO,
+        transactions: [],
+      });
+    }
+
 
     res.json({
       totalBudget: userTransaction.totalBudget,
@@ -31,8 +41,10 @@ router.get("/:email", async (req, res) => {
       remainingBudget: userTransaction.remainingBudget,
       transactions: userTransaction.transactions,
     });
+
   } catch (error) {
-    res.status(STATUS_CODE_INTERNAL_SERVER_ERROR).json({ message: error.message });
+    console.error("Error fetching user budget data:", error);
+    res.status(500).json({ message: error.message });
   }
 });
 
