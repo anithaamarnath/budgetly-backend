@@ -1,7 +1,6 @@
 const { STATUS_CODE_BAD_REQUEST, STATUS_CODE_CREATED, STATUS_CODE_INTERNAL_SERVER_ERROR, STATUS_CODE_NOT_FOUND, ZERO } = require("../constants");
 const express = require("express");
-const { User,validateUser, UserTransaction, validateUserTransaction } = require("../models/user");  
-const authMiddleware = require("../middleware/authMiddleware");
+const { User, UserTransaction } = require("../models/user");  
 const { ObjectId } = require("mongodb");
 const router = express.Router();
 
