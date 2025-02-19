@@ -1,7 +1,7 @@
 const { STATUS_CODE_BAD_REQUEST, STATUS_CODE_INTERNAL_SERVER_ERROR, ZERO } = require('../constants');
 const _ = require('lodash');
 const express = require('express');
-const { User, validate } = require('../models/user');
+const { User, validateUser } = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
   
-    const { error } = validate(req.body);
+    const { error } = validateUser(_.omit(req.body, ['token', 'isLoggedIn']));
     
   
     if (error) return res.status(STATUS_CODE_BAD_REQUEST).send(error.details[ZERO].message);

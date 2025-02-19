@@ -87,6 +87,7 @@ function validateUser(user) {
     confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
       "any.only": "Confirm password does not match password",
     }),
+    token: Joi.string().optional(),
   });
   return schema.validate(user);
 }
