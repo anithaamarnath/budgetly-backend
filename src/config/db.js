@@ -1,3 +1,4 @@
+const {MIN_LENGTH_ONE} = require('../constants');
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
@@ -5,7 +6,7 @@ const connectDB = async () => {
         await mongoose.connect(process.env.MONGO_URI);
     } catch (error) {
         console.error(`Error: ${error.message}`);
-        process.exit(1); 
+        process.exit(MIN_LENGTH_ONE); 
     }
    
 };
