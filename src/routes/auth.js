@@ -2,7 +2,13 @@ const express = require('express');
 const { UserTransaction, validateUserTransaction } = require('../models/user');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
-const { STATUS_CODE_BAD_REQUEST, ZERO,STATUS_CODE_INTERNAL_SERVER_ERROR, STATUS_CODE_UNAUTHORIZED, STATUS_CODE_CREATED} = require('../constants');
+const { 
+  STATUS_CODE_BAD_REQUEST, 
+  ZERO,
+  STATUS_CODE_INTERNAL_SERVER_ERROR, 
+  STATUS_CODE_UNAUTHORIZED, 
+  STATUS_CODE_CREATED
+} = require('../constants');
 
 router.post('/addNew', authMiddleware, async (req, res) => {
  
