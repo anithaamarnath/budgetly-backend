@@ -1,8 +1,8 @@
+const {ZERO,EXPIRES_IN_ONE_HOUR,MIN_LENGTH_FIVE,MAX_LENGTH_FIFTY, MIN_LENGTH_EIGHT, MAX_LENGTH_TWENTY,MAX_LENGTH_TWO_FIFTY_FIVE, MAX_LENGTH_ONE_THOUSAND_TWENTY_FOUR} = require('../constants');
 const mongoose = require("mongoose");
 const Joi = require("joi");
 const passwordComplexity = require("joi-password-complexity");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 
 
 const transactionSchema = new mongoose.Schema({
@@ -16,8 +16,8 @@ const transactionSchema = new mongoose.Schema({
 const userTransactionSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   transactions: [transactionSchema],
-  totalBudget: { type: Number, default: 0 },
-  totalAmountSpent: { type: Number, default: 0 },
+  totalBudget: { type: Number, default: ZERO },
+  totalAmountSpent: { type: Number, default: ZERO },
 });
 
 
@@ -27,9 +27,9 @@ userTransactionSchema.virtual("remainingBudget").get(function () {
 
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, minlength: 5, maxlength: 50 },
-  email: { type: String, required: true, minlength: 5, maxlength: 255, unique: true },
-  password: { type: String, required: true, minlength: 8, maxlength: 1024 },
+  name: { type: String, required: true, minlength: MIN_LENGTH_FIVE, maxlength: MAX_LENGTH_FIFTY },
+  email: { type: String, required: true, minlength: MIN_LENGTH_FIVE, maxlength: MAX_LENGTH_TWO_FIFTY_FIVE, unique: true },
+  password: { type: String, required: true, minlength: MIN_LENGTH_EIGHT, maxlength: MAX_LENGTH_ONE_THOUSAND_TWENTY_FOUR },
 });
 
 
@@ -42,7 +42,7 @@ userSchema.methods.generateAuthToken = function () {
   return jwt.sign(
     { _id: this._id, name: this.name, email: this.email },
     process.env.JWT_PRIVATE_KEY,
-    { expiresIn: "1h" }
+    { expiresIn: EXPIRES_IN_ONE_HOUR }
   );
 };
 
@@ -53,16 +53,16 @@ const UserTransaction = mongoose.model("UserTransaction", userTransactionSchema)
 
 function validateUser(user) {
   const schema = Joi.object({
-    name: Joi.string().min(5).max(50).required(),
-    email: Joi.string().min(5).max(255).required().email(),
+    name: Joi.string().min(MIN_LENGTH_FIVE).max(MAX_LENGTH_FIFTY).required(),
+    email: Joi.string().min(MIN_LENGTH_FIVE).max(MAX_LENGTH_TWO_FIFTY_FIVE).required().email(),
     password: passwordComplexity({
-      min: 8,
-      max: 20,
-      lowerCase: 1,
-      upperCase: 1,
-      numeric: 1,
-      symbol: 1,
-      requirementCount: 4,
+      min: MIN_LENGTH_EIGHT,
+      max: MAX_LENGTH_TWENTY,
+      lowerCase: MIN_LENGTH_ONE,
+      upperCase: MIN_LENGTH_ONE,
+      numeric: MIN_LENGTH_ONE,
+      symbol: MIN_LENGTH_ONE,
+      requirementCount: MIN_LENGTH_FOUR,
     }).required(),
     confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
       "any.only": "Confirm password does not match password",
@@ -80,15 +80,15 @@ function validateUserTransaction(userTransaction) {
       .items(
         Joi.object({
           category: Joi.string().valid("food", "transportation", "entertainment", "housing", "shopping").required(),
-          amount: Joi.number().greater(0).required(),
+          amount: Joi.number().greater(ZERO).required(),
           description: Joi.string().optional(),
           date: Joi.date().iso().optional(),
         })
       )
       .required()
       .min(1),
-    totalBudget: Joi.number().greater(0).optional(),
-    totalAmountSpent: Joi.number().min(0).optional(),
+    totalBudget: Joi.number().greater(ZERO).optional(),
+    totalAmountSpent: Joi.number().min(ZERO).optional(),
   });
   return schema.validate(userTransaction);
 }
